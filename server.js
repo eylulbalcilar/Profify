@@ -7,68 +7,64 @@ app.use(express.json());
 
 const url = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/proofify";
 const client = new MongoClient(url);
+let dbCollection;
 
-let documentsCollection;
-
-async function connectToDb() {
+async function startServer() {
     try {
         await client.connect();
-        console.log("Connected to MongoDB");
-        const db = client.db("proofify");
-        documentsCollection = db.collection("documents");
-        
-        const count = await documentsCollection.countDocuments();
-        if (count === 0) {
-            await documentsCollection.insertMany([
-                { docId: "doc1", ownerOrg: "org1", content: "Initial sample" },
-                { docId: "doc2", ownerOrg: "org2", content: "Second sample" }
-            ]);
-        }
-    } catch (err) {
-        console.error("Database error:", err);
+        dbCollection = client.db("proofify").collection("documents");
+        app.listen(process.env.PORT || 5001);
+    } catch (e) {
+        process.exit(1);
     }
 }
 
-connectToDb();
+const auth = (req, res, next) => {
+    const id = req.headers["x-org-id"];
+    if (!id) return res.status(400).json({ error: "Missing ID" });
+    req.orgID = id;
+    next();
+};
 
-app.get("/documents", async (req, res) => {
-    const orgID = req.headers["x-org-id"];
-    if (!orgID) return res.status(400).send("Missing organization header");
-    
+app.get("/documents", auth, async (req, res) => {
     try {
-        const docs = await documentsCollection.find({ ownerOrg: orgID }).toArray();
-        res.status(200).send(docs);
-    } catch (err) {
-        res.status(500).send("Fetch error");
+        const data = await dbCollection.find({ ownerOrg: req.orgID }).toArray();
+        res.status(200).json(data);
+    } catch (e) {
+        res.status(500).json({ error: "Server error" });
     }
 });
 
-app.post("/upload", async (req, res) => {
+app.post("/documents", async (req, res) => {
     try {
         const { docId, ownerOrg, content } = req.body;
-        if (!docId || !ownerOrg) return res.status(400).send("Invalid data");
-        
-        await documentsCollection.insertOne({ docId, ownerOrg, content });
-        res.status(201).send("Document uploaded");
-    } catch (err) {
-        res.status(500).send("Upload error");
+        if (!docId || !ownerOrg || !content) return res.status(400).json({ error: "Invalid data" });
+        await dbCollection.insertOne({ docId, ownerOrg, content });
+        res.status(201).json({ status: "Created" });
+    } catch (e) {
+        res.status(500).json({ error: "Server error" });
     }
 });
 
-app.post("/proof/:id", async (req, res) => {
-    const orgID = req.headers["x-org-id"];
+app.post("/documents/proof/:id", auth, async (req, res) => {
     try {
-        const doc = await documentsCollection.findOne({ docId: req.params.id });
-        if (!doc) return res.status(404).send("Not found");
-        if (doc.ownerOrg !== orgID) return res.status(403).send("Forbidden");
-        
-        res.status(202).send("Proof accepted");
-    } catch (err) {
-        res.status(500).send("Server error");
+        const item = await dbCollection.findOne({ docId: req.params.id });
+        if (!item) return res.status(404).json({ error: "Not found" });
+        if (item.ownerOrg !== req.orgID) return res.status(403).json({ error: "Forbidden" });
+        res.status(202).json({ status: "Accepted" });
+    } catch (e) {
+        res.status(500).json({ error: "Server error" });
     }
 });
 
-const PORT = process.env.PORT || 5001;
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+app.delete("/documents/:id", auth, async (req, res) => {
+    try {
+        const result = await dbCollection.deleteOne({ docId: req.params.id, ownerOrg: req.orgID });
+        if (result.deletedCount === 0) return res.status(404).json({ error: "Not found" });
+        res.status(204).send();
+    } catch (e) {
+        res.status(500).json({ error: "Server error" });
+    }
 });
+
+startServer();
