@@ -7,8 +7,10 @@ const client = new MongoClient(url);
 export async function connectToDatabase() {
     try {
         await client.connect();
+        console.log("Connected successfully to MongoDB");
         return client.db("proofify").collection("documents");
     } catch (e) {
+        console.error("Database connection failed:", e.message);
         process.exit(1);
     }
 }
