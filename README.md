@@ -77,33 +77,41 @@ All requests require the following header:
 x-org-id: Your Organization ID (e.g., "SALT Bootcamps")
 
 
-## Testing with Live Database Samples
 
-The API is pre-loaded with document data for specific organizations. Use these exact values to test the endpoints:
+## Testing Guide for Ilo (Advanced Scenarios)
 
-### Test Case 1: Fetching Documents (GET)
-## Testing Guide for Ilo
+Dear Ilo, please use the following test cases to observe how the API handles different outcomes based on the database state.
+I have included both our records and various error scenarios:
 
-Dear Ilo, you can use the following real records from the database to test the API functionality. These examples demonstrate how the API handles different organizations and students.
+### 1. Success Case: 202 Accepted (Ilo Fabian Miiro)
+* **Goal**: Verify your own valid document with the matching organization.
+* **Organization (Header)**: `Hyper Island`
+* **Document ID (URL)**: `HI-UX-2025-44`
+* **Action**: `POST` to `/documents/proof/HI-UX-2025-44`
+* **Expected Result**: `202 Accepted`
 
-### 1. Verification Test (The User: Eylül Balcılar)
-- **Organization**: `SALT Bootcamps`
-- **Document ID**: `SALT-2024-001`
-- **Action**: Send a `POST` request to `/documents/proof/SALT-2024-001` with header `x-org-id: SALT Bootcamps`.
-- **Expected Result**: 202 Accepted (Verification Successful).
+### 2. Student Success Case: 202 Accepted (Eylül Balcılar)
+* **Goal**: Verify my student record with the matching organization.
+* **Organization (Header)**: `Hyper Island`
+* **Document ID (URL)**: `HI-FE-2026-01`
+* **Action**: `POST` to `/documents/proof/HI-FE-2026-01`
+* **Expected Result**: `202 Accepted`
 
-### 2. Verification Test (The Teacher: Ilo)
-- **Organization**: `Amazon Web Services`
-- **Document ID**: `AWS-ARCH-99`
-- **Action**: Send a `POST` request to `/documents/proof/AWS-ARCH-99` with header `x-org-id: Amazon Web Services`.
-- **Expected Result**: 202 Accepted (Verification Successful).
+### 3. Security Case: 403 Forbidden (Cross-Organization)
+* **Goal**: Prove that one organization cannot verify another institution's diploma.
+* **Organization (Header)**: `Stockholm University`
+* **Document ID (URL)**: `KTH-ENG-2023-55` (Sofia Berg's KTH diploma)
+* **Action**: Attempt to verify a KTH document using a Stockholm University header.
+* **Expected Result**: `403 Forbidden`
 
-### 3. Verification Test (Other Student: Lars Svensson)
-- **Organization**: `Uppsala University`
-- **Document ID**: `UU-2023-088`
-- **Action**: Send a `POST` request to `/documents/proof/UU-2023-088` with header `x-org-id: Uppsala University`.
-- **Expected Result**: 202 Accepted.
+### 4. Not Found Case: 404 Not Found
+* **Goal**: Show API behavior when a record does not exist in the database.
+* **Document ID (URL)**: `NON-EXISTENT-ID-123`
+* **Action**: `POST` to `/documents/proof/NON-EXISTENT-ID-123`
+* **Expected Result**: `404 Not Found`
 
-### 4. Cross-Organization Security Test
-- **Action**: Attempt to verify Eylül's document (`SALT-2024-001`) while using Ilo's organization header (`x-org-id: Amazon Web Services`).
-- **Expected Result**: 403 Forbidden (Prevents unauthorized organizations from verifying other documents).
+### 5. Data Listing: 200 OK (Liam Andersson)
+* **Goal**: Successfully retrieve all documents belonging to a specific organization.
+* **Organization (Header)**: `Stockholm University`
+* **Action**: `GET` request to `/documents`
+* **Expected Result**: `200 OK` with Liam Andersson's record (`SU-CS-2024-102`)
