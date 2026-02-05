@@ -78,40 +78,59 @@ x-org-id: Your Organization ID (e.g., "SALT Bootcamps")
 
 
 
-## Testing Guide for Ilo (Advanced Scenarios)
+Testing Guide for Ilo
+Dear Ilo, please follow these specific scenarios to test how the API handles different data states and security layers. These examples are based on the records we've stored in the database.
 
-Dear Ilo, please use the following test cases to observe how the API handles different outcomes based on the database state.
-I have included both our records and various error scenarios:
+1. Retrieve Your Records (200 OK)
+Objective: List all documents belonging to Hyper Island.
 
-### 1. Success Case: 202 Accepted (Ilo Fabian Miiro)
-* **Goal**: Verify your own valid document with the matching organization.
-* **Organization (Header)**: `Hyper Island`
-* **Document ID (URL)**: `HI-UX-2025-44`
-* **Action**: `POST` to `/documents/proof/HI-UX-2025-44`
-* **Expected Result**: `202 Accepted`
+Method: GET
 
-### 2. Student Success Case: 202 Accepted (Eylül Balcılar)
-* **Goal**: Verify my student record with the matching organization.
-* **Organization (Header)**: `Hyper Island`
-* **Document ID (URL)**: `HI-FE-2026-01`
-* **Action**: `POST` to `/documents/proof/HI-FE-2026-01`
-* **Expected Result**: `202 Accepted`
+URL: http://localhost:5001/documents
 
-### 3. Security Case: 403 Forbidden (Cross-Organization)
-* **Goal**: Prove that one organization cannot verify another institution's diploma.
-* **Organization (Header)**: `Stockholm University`
-* **Document ID (URL)**: `KTH-ENG-2023-55` (Sofia Berg's KTH diploma)
-* **Action**: Attempt to verify a KTH document using a Stockholm University header.
-* **Expected Result**: `403 Forbidden`
+Header: x-org-id: Hyper Island
 
-### 4. Not Found Case: 404 Not Found
-* **Goal**: Show API behavior when a record does not exist in the database.
-* **Document ID (URL)**: `NON-EXISTENT-ID-123`
-* **Action**: `POST` to `/documents/proof/NON-EXISTENT-ID-123`
-* **Expected Result**: `404 Not Found`
+2. Verify Your Own Diploma (202 Accepted)
+Objective: Successfully verify your specific UX Design certificate.
 
-### 5. Data Listing: 200 OK (Liam Andersson)
-* **Goal**: Successfully retrieve all documents belonging to a specific organization.
-* **Organization (Header)**: `Stockholm University`
-* **Action**: `GET` request to `/documents`
-* **Expected Result**: `200 OK` with Liam Andersson's record (`SU-CS-2024-102`)
+Method: POST
+
+URL: http://localhost:5001/documents/proof/HI-UX-2025-44
+
+Header: x-org-id: Hyper Island
+
+3. Security Breach Attempt (403 Forbidden)
+Objective: Try to verify Sofia Berg's (KTH) record while identified as Hyper Island.
+
+Method: POST
+
+URL: http://localhost:5001/documents/proof/KTH-ENG-2023-55
+
+Header: x-org-id: Hyper Island
+
+4. Non-Existent ID Search (404 Not Found)
+Objective: Test the API response for a document ID that doesn't exist.
+
+Method: POST
+
+URL: http://localhost:5001/documents/proof/MYSTERY-ID-000
+
+Header: x-org-id: Hyper Island
+
+5. Missing Auth Header (400 Bad Request)
+Objective: Test the "Authentication failed" logic by omitting the header.
+
+Method: GET or POST
+
+URL: http://localhost:5001/documents
+
+Header: (Delete the x-org-id key)
+
+6. Clean Up Julian's Record (200 OK)
+Objective: Permanently remove Julian Vance's Nordic JS record from the database.
+
+Method: DELETE
+
+URL: http://localhost:5001/documents/NORDIC-JS-26
+
+Header: x-org-id: Nordic JS
