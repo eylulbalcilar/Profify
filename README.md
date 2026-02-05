@@ -13,7 +13,7 @@ Proofify is a secure Web API built with Node.js, Express, and MongoDB for managi
 - **Database**: MongoDB (Local or Atlas)
 - **Environment**: Dotenv for secure configuration
 
-## Getting Started
+## Getting Started 
 
 ### Prerequisites
 - Node.js installed
@@ -76,13 +76,19 @@ All requests require the following header:
 
 x-org-id: Your Organization ID (e.g., "SALT Bootcamps")
 
+----
 
 
-Testing Guide for Ilo
-Dear Ilo, please follow these specific scenarios to test how the API handles different data states and security layers. These examples are based on the records we've stored in the database.
 
-1. Retrieve Your Records (200 OK)
-Objective: List all documents belonging to Hyper Island.
+
+
+
+## Testing Guide for Ilo 
+Official Testing Guide for Ilo
+Dear Ilo, please use these specific scenarios to test the API. Each case is designed to trigger a unique response and status code. Note: Always use the full URL: http://localhost:5001.
+
+1. View Your Hyper Island Records (200 OK)
+Goal: Retrieve the list of all documents belonging to your institution.
 
 Method: GET
 
@@ -90,8 +96,10 @@ URL: http://localhost:5001/documents
 
 Header: x-org-id: Hyper Island
 
-2. Verify Your Own Diploma (202 Accepted)
-Objective: Successfully verify your specific UX Design certificate.
+Expected Message: "Magic! We found 3 legendary records for Hyper Island."
+
+2. Verify Your Personal Diploma (202 Accepted)
+Goal: Confirm that your specific UX Design certificate is valid.
 
 Method: POST
 
@@ -99,8 +107,10 @@ URL: http://localhost:5001/documents/proof/HI-UX-2025-44
 
 Header: x-org-id: Hyper Island
 
-3. Security Breach Attempt (403 Forbidden)
-Objective: Try to verify Sofia Berg's (KTH) record while identified as Hyper Island.
+Expected Message: "Brilliant! Ilo Fabian Miiro's diploma is 100% genuine! "
+
+3. Attempt Unauthorized Access (403 Forbidden)
+Goal: Try to verify Sofia Berg's (KTH) record while logged in as Hyper Island.
 
 Method: POST
 
@@ -108,29 +118,26 @@ URL: http://localhost:5001/documents/proof/KTH-ENG-2023-55
 
 Header: x-org-id: Hyper Island
 
-4. Non-Existent ID Search (404 Not Found)
-Objective: Test the API response for a document ID that doesn't exist.
+Expected Message: "Stop right there! This belongs to another institution. "
 
-Method: POST
+4. Delete a Foreign Record (404 Not Found)
+Goal: Try to delete Nordic JS's document using Hyper Island credentials.
 
-URL: http://localhost:5001/documents/proof/MYSTERY-ID-000
+Method: DELETE
+
+URL: http://localhost:5001/documents/NORDIC-JS-26
 
 Header: x-org-id: Hyper Island
 
-5. Missing Auth Header (400 Bad Request)
-Objective: Test the "Authentication failed" logic by omitting the header.
+Expected Message: "No matching document found to delete." (Security check passed!)
 
-Method: GET or POST
-
-URL: http://localhost:5001/documents
-
-Header: (Delete the x-org-id key)
-
-6. Clean Up Julian's Record (200 OK)
-Objective: Permanently remove Julian Vance's Nordic JS record from the database.
+5. Proper Deletion (200 OK)
+Goal: Successfully remove a record using the correct credentials.
 
 Method: DELETE
 
 URL: http://localhost:5001/documents/NORDIC-JS-26
 
 Header: x-org-id: Nordic JS
+
+Expected Message: "Gone forever! Just like your last coffee."
