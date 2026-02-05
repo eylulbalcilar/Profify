@@ -77,3 +77,4 @@ app.delete("/documents/:id", auth, async (req, res) => {
 });
 
 startServer();
+ 
