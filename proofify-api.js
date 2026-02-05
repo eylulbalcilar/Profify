@@ -18,6 +18,21 @@ const auth = (req, res, next) => {
     next();
 };
 
+app.get("/documents/:id", auth, async (req, res) => {
+    try {
+        const item = await dbCollection.findOne({ 
+            docId: req.params.id, 
+            ownerOrg: req.orgID 
+        });
+        if (!item) {
+            return res.status(404).json({ message: "Document not found." });
+        }
+        res.status(200).json(item);
+    } catch (e) {
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+});
+
 app.get("/documents", auth, async (req, res) => {
     try {
         const data = await dbCollection.find({ ownerOrg: req.orgID }).toArray();
