@@ -22,7 +22,7 @@ Proofify is a secure Web API built with Node.js, Express, and MongoDB for managi
 ### Installation
 1. Clone the repository:
    ```
-   git clone <your-repository-url>
+   https://github.com/eylulbalcilar/Profify
 
 2.Install dependencies:
 ```
